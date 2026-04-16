@@ -115,7 +115,7 @@ object GhibliMovieData {
         GhibliMovie(
             id = "17",
             title = "The Cat Returns",
-            photoUrl = "https://www.ghibli.jp/images/neko.jpg",
+            photoUrl = "https://www.ghibli.jp/images/baron.jpg",
             director = "Hiroyuki Morita",
             producer = "Toshio Suzuki",
             description = "After helping a cat, a seventeen-year-old girl finds herself involuntarily engaged to a cat prince in a magical world where her only hope of freedom lies with a dapper feline statuette come to life.",
