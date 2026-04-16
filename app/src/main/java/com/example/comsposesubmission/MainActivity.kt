@@ -1,19 +1,26 @@
 package com.example.comsposesubmission
 
-import com.example.comsposesubmission.ui.component.GhibliSearchBar
 import com.example.comsposesubmission.ui.component.GhibliTopBar
 import com.example.comsposesubmission.ui.list.ListScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -24,20 +31,38 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.comsposesubmission.ui.SharedViewModel
-import com.example.comsposesubmission.ui.about.AboutScreen
 import com.example.comsposesubmission.ui.component.BottomNavBar
 import com.example.comsposesubmission.ui.detail.DetailScreen
 import com.example.comsposesubmission.ui.favorite.FavoriteScreen
+import com.example.comsposesubmission.ui.splash.SplashScreen
 import com.example.comsposesubmission.ui.theme.ComsposeSubmissionTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        // Splash has a dark background, so start with white status bar icons.
+        // Compose theme SideEffect will adjust after splash finishes.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT)
+        )
 
         setContent {
             ComsposeSubmissionTheme {
-                MainScreen()
+                var splashDone by remember { mutableStateOf(false) }
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AnimatedVisibility(
+                        visible = splashDone,
+                        enter = fadeIn(spring(stiffness = Spring.StiffnessVeryLow))
+                    ) {
+                        MainScreen()
+                    }
+
+                    if (!splashDone) {
+                        SplashScreen(onFinished = { splashDone = true })
+                    }
+                }
             }
         }
     }
@@ -52,41 +77,39 @@ fun MainScreen() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "home"
     val isDetailScreen = currentRoute.startsWith("detail/")
-    val isAboutScreen = currentRoute == "about"
     val isFavoriteScreen = currentRoute.startsWith("favorites")
+    val isHomeScreen = currentRoute.startsWith("home")
+
+    var searchOpen by remember { mutableStateOf(false) }
+
+    // Close search when navigating away from home
+    if (!isHomeScreen && searchOpen) {
+        searchOpen = false
+        sharedViewModel.searchMovies("")
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            if (!isDetailScreen && !isAboutScreen) {
-                Column {
-                    val topBarTitle = when {
-                        currentRoute.startsWith("home") -> "Studio Ghibli Movies"
-                        isFavoriteScreen -> "Favorite Movies"
-                        else -> "Studio Ghibli Movies"
-                    }
-                    GhibliTopBar(
-                        title = topBarTitle,
-                        onAccountClick = {
-                            navController.navigate("about")
-                        }
-                    )
-                    if (!isFavoriteScreen) {
-                        GhibliSearchBar(
-                            query = searchQuery,
-                            onQueryChange = {
-                                sharedViewModel.searchMovies(it)
-                            }
-                        )
-                    }
-                }
+            if (!isDetailScreen) {
+                GhibliTopBar(
+                    title = if (isFavoriteScreen) "Favorites" else "Studio Ghibli",
+                    showSearch = searchOpen,
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { sharedViewModel.searchMovies(it) },
+                    onSearchToggle = {
+                        searchOpen = !searchOpen
+                        if (!searchOpen) sharedViewModel.searchMovies("")
+                    },
+                    searchEnabled = isHomeScreen
+                )
             }
         },
         bottomBar = {
-            if (!isDetailScreen && !isAboutScreen) {
+            if (!isDetailScreen) {
                 BottomNavBar(
                     currentRoute = when {
-                        currentRoute.startsWith("home") -> "home"
+                        isHomeScreen -> "home"
                         isFavoriteScreen -> "favorites"
                         else -> "home"
                     },
@@ -132,21 +155,13 @@ fun MainScreen() {
                 DetailScreen(
                     movieId = movieId,
                     viewModel = sharedViewModel,
-                    onBackClick = {
-                        navController.navigateUp()
-                    }
-                )
-            }
-            composable("about") {
-                AboutScreen(
-                    onBackClick = {
-                        navController.navigateUp()
-                    }
+                    onBackClick = { navController.navigateUp() }
                 )
             }
         }
     }
 }
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MainActivityPreview() {

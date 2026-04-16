@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew assembleDebug)",
+      "Bash(curl -sL \"https://github.com/google/fonts/raw/main/ofl/nunito/static/Nunito-Regular.ttf\" -o nunito_regular.ttf)",
+      "Bash(curl -sL \"https://github.com/google/fonts/raw/main/ofl/nunito/static/Nunito-Medium.ttf\" -o nunito_medium.ttf)",
+      "Bash(curl -sL \"https://github.com/google/fonts/raw/main/ofl/nunito/static/Nunito-SemiBold.ttf\" -o nunito_semibold.ttf)",
+      "Bash(curl -sL \"https://github.com/google/fonts/raw/main/ofl/nunito/static/Nunito-Bold.ttf\" -o nunito_bold.ttf)",
+      "Bash(curl -sL \"https://github.com/google/fonts/raw/main/ofl/nunito/static/Nunito-ExtraBold.ttf\" -o nunito_extrabold.ttf)",
+      "Bash(xxd nunito_regular.ttf)",
+      "Bash(rm *.ttf)",
+      "Bash(curl -s \"https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800\" -H \"User-Agent: Mozilla/5.0\")",
+      "Bash(curl -sL \"https://fonts.gstatic.com/s/nunito/v32/XRXI3I6Li01BKofiOc5wtlZ2di8HDLshRTM.ttf\" -o nunito_regular.ttf)",
+      "Bash(curl -sL \"https://fonts.gstatic.com/s/nunito/v32/XRXI3I6Li01BKofiOc5wtlZ2di8HDIkhRTM.ttf\" -o nunito_medium.ttf)",
+      "Bash(curl -sL \"https://fonts.gstatic.com/s/nunito/v32/XRXI3I6Li01BKofiOc5wtlZ2di8HDGUmRTM.ttf\" -o nunito_semibold.ttf)",
+      "Bash(curl -sL \"https://fonts.gstatic.com/s/nunito/v32/XRXI3I6Li01BKofiOc5wtlZ2di8HDFwmRTM.ttf\" -o nunito_bold.ttf)",
+      "Bash(curl -sL \"https://fonts.gstatic.com/s/nunito/v32/XRXI3I6Li01BKofiOc5wtlZ2di8HDDsmRTM.ttf\" -o nunito_extrabold.ttf)"
+    ]
+  }
+}

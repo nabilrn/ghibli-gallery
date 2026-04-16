@@ -1,12 +1,12 @@
 package com.example.comsposesubmission.ui.component
 
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -18,153 +18,113 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.comsposesubmission.ui.theme.ComsposeSubmissionTheme
-import com.example.comsposesubmission.ui.theme.NewPrimaryColor
 
 @Composable
 fun BottomNavBar(
     currentRoute: String,
     onNavigate: (String) -> Unit
 ) {
-    val routes = listOf("home", "favorites")
-
     Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp)
-            .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
-            .shadow(elevation = 16.dp, shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)),
+        modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        tonalElevation = 8.dp
+        tonalElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.SpaceAround,
+                .navigationBarsPadding()
+                .padding(horizontal = 40.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            routes.forEach { route ->
-                val selected = currentRoute == route
-
-                NavBarItem(
-                    title = route.capitalize(),
-                    icon = getIcon(route, selected),
-                    selected = selected,
-                    onSelect = { onNavigate(route) }
-                )
-            }
+            NavItem(
+                label = "Home",
+                icon = if (currentRoute == "home") Icons.Filled.Home else Icons.Outlined.Home,
+                selected = currentRoute == "home",
+                onClick = { onNavigate("home") },
+                modifier = Modifier.weight(1f)
+            )
+            NavItem(
+                label = "Favorites",
+                icon = if (currentRoute == "favorites") Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                selected = currentRoute == "favorites",
+                onClick = { onNavigate("favorites") },
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
 
 @Composable
-fun NavBarItem(
-    title: String,
+private fun NavItem(
+    label: String,
     icon: ImageVector,
     selected: Boolean,
-    onSelect: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val animatedColor by animateColorAsState(
-        targetValue = if (selected)
-            NewPrimaryColor
-        else
-            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-        label = "colorAnimation"
-    )
-
-    val indicatorWidth by animateDpAsState(
-        targetValue = if (selected) 24.dp else 0.dp,
-        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
-        label = "widthAnimation"
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1f else 0.9f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "navScale"
     )
 
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .width(80.dp)
-            .fillMaxHeight()
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) { onClick() }
+            .padding(vertical = 6.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale },
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            IconButton(
-                onClick = onSelect,
-                modifier = Modifier.size(48.dp)
-
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = title,
-                    tint = animatedColor,
-                    modifier = Modifier.size(28.dp),
-
-                    )
-            }
-
-            // Create a glowing effect when selected
-            if (selected) {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            NewPrimaryColor.copy(alpha = 0.1f),
-                            CircleShape
-                        )
+            modifier = Modifier
+                .clip(RoundedCornerShape(10.dp))
+                .then(
+                    if (selected) Modifier.background(
+                        MaterialTheme.colorScheme.primaryContainer
+                    ) else Modifier
                 )
-            }
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (selected)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(24.dp)
+            )
         }
 
+        Spacer(modifier = Modifier.height(2.dp))
+
         Text(
-            text = title,
-            color = animatedColor,
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-        )
-
-        // Indicator bar
-        Spacer(modifier = Modifier.height(4.dp))
-        Box(
-            modifier = Modifier
-                .height(3.dp)
-                .width(indicatorWidth)
-                .clip(CircleShape)
-                .background(NewPrimaryColor)
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = if (selected)
+                MaterialTheme.colorScheme.primary
+            else
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
     }
-}
-
-fun getIcon(route: String, selected: Boolean): ImageVector {
-    return when (route) {
-        "home" -> if (selected) Icons.Filled.Home else Icons.Outlined.Home
-        "favorites" -> if (selected) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder
-        else -> Icons.Filled.Home
-    }
-}
-
-fun String.capitalize(): String {
-    return this.replaceFirstChar { it.uppercase() }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun BottomNavPreview() {
+private fun BottomNavPreview() {
     ComsposeSubmissionTheme {
-        Surface {
-            BottomNavBar(
-                currentRoute = "home",
-                onNavigate = {}
-            )
-        }
+        BottomNavBar(currentRoute = "home", onNavigate = {})
     }
 }

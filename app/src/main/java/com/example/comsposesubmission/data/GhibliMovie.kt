@@ -1,8 +1,6 @@
 package com.example.comsposesubmission.data
 
-
-
-data class GhibliMovie (
+data class GhibliMovie(
     val id: String,
     val title: String,
     val description: String,
@@ -11,5 +9,5 @@ data class GhibliMovie (
     val releaseDate: String,
     val photoUrl: String,
     val trailerUrl: String,
-    val isFavorite : Boolean = false
+    val isFavorite: Boolean = false
 )
